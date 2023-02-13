@@ -8,11 +8,10 @@ import { startStandaloneServer } from '@apollo/server/standalone';
         type Book {
             id: Int
             title: String
-            author: Author
+            authors: [Author]
             price: Int
     
         }
-
         type Author {
             id: Int
             name: String
@@ -25,6 +24,16 @@ import { startStandaloneServer } from '@apollo/server/standalone';
         type Query {
           author(criteria: String): [Author]
         }
+        
+        input BookInput {
+          title: String
+          price: Int
+          authorName: String
+
+        }
+        type Mutation {
+            saveBook (book: BookInput): Book
+        }
 
  `;
   //db
@@ -32,25 +41,37 @@ import { startStandaloneServer } from '@apollo/server/standalone';
     {
       id: 1,
       title: 'Clean Code',
-      author: {
-        name: 'Richard C. Martin',
-      },
+      authors: [
+        {
+          name: 'Robert C. Martin',
+        },
+        {
+          name: 'Martin',
+        },
+      ],
       price: 64,
     },
     {
       id: 2,
       title: 'Learn React',
-      author: {
-        name: 'Alex Banks and Eve Porcello',
-      },
+      authors: [
+        {
+          name: 'Alex Banks',
+        },
+        {
+          name: 'Alex Banks Eve Porcello',
+        },
+      ],
       price: 50,
     },
     {
       id: 3,
       title: 'Beyound good and evil',
-      author: {
-        name: 'Nietzche',
-      },
+      authors: [
+        {
+          name: 'Nietzche',
+        },
+      ],
       price: 64,
     },
   ];
@@ -61,10 +82,12 @@ import { startStandaloneServer } from '@apollo/server/standalone';
     { id: 3, name: 'Nietzsche' },
   ];
 
+  console.log(books);
+
   const resolvers = {
     Query: {
       books(obj: any, args: any) {
-      
+        console.log(args);
         if (!args.criteria) return books;
         return books.filter((books) =>
           books.title
@@ -73,11 +96,27 @@ import { startStandaloneServer } from '@apollo/server/standalone';
         );
       },
       author: (obj: any, args: any) => {
-        console.log(obj);
         if (!args.criteria) return authors;
-        return authors.filter((author, i) => {
-          return author.id === Number(args.criteria);
-        });
+      },
+
+    },
+
+    Mutation: {
+      saveBook: (obj: any, args: any) => {
+        console.log(args);
+        const book = {
+          id: books.length + 1,
+          title: args.book.title,
+          price: args.book.price,
+          authors: [
+            {
+              name: args.book.authorName,
+            },
+          ],
+        };
+
+        books.push(book);
+        return book;
       },
     },
   };

@@ -1,36 +1,101 @@
 import axios from 'axios';
+import { response } from 'express';
 
-test('should return a array with 3 elements', async () => {
-  const query = `
-  query GetBook {
-       books {
-           id
-           title
-           author {
-             name
-           } 
-       }
- }`;
+describe('books API graphQL', () => {
+  test('should return a array with 3 elements', async () => {
+    const response = await axios('http://localhost:4000/', {
+      method: 'post',
+      data: {
+        query: `
+         query GetBook {
+          books {
+              id
+              title
+              price
+          
+              authors {
+                id
+                name
+              }
+          }
+       }`,
+      },
+    });
 
-  const reponse = await axios('http://localhost:4000/', {
-    method: 'post',
-    data: {
-      query: `
-        query GetBook {
-            books {
+    const {
+      data: { books },
+    } = await response.data;
+    expect(books).toHaveLength(3);
+  });
+  /* 
+  test('get book by params', async () => {
+    const response = await axios('http://localhost:4000/', {
+      method: 'post',
+      data: {
+        query: `
+       query GetBook($criteria: String) {
+            books(criteria: $criteria) {
                 id
                 title
-                author {
+                authors {
                   name
+                }
+            } 
+        }`,
+
+        variables: {
+          criteria: 'Clean',
+        },
+      },
+    });
+
+    const {
+      data: { books},
+    } = await response.data;
+
+    const [book] = books;
+    const [author] = book.authors;
+
+  console.log(book);
+    expect(books).toHaveLength(1);
+    expect(book.title).toBe('Clean Code');
+    expect(author.name).toBe("Robert C. Martin");
+  }); */
+
+
+  test('must save a new book', async () => {
+    const response = await axios('http://localhost:4000/', {
+      method: 'post',
+      data: {
+        query: `
+           mutation ($book: BookInput) {
+                saveBook (book: $book) { 
+                    id
+                    title
+                    price
+                    authors {
+                      name
+                    }
                 } 
-            }
-       }`,
-    },
+           }
+           `,
+        variables: {
+          book: {
+            title: 'Clean Architecture',
+            price: 85,
+            authorName: 'Robert C. Martin',
+          },
+        },
+      },
+
+    });
+
+    const book = await response.data
+    console.log(book);
+
+
   });
 
-  const  {data: { books }} = reponse.data; 
-  /* const {books}  = reponse.data
-   console.log(books); */
-   console.log(books[1]);
-  expect(books).toHaveLength(3)
+
+
 });
