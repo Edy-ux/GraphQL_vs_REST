@@ -22,6 +22,9 @@ import { startStandaloneServer } from '@apollo/server/standalone';
           books(criteria: String): [Book]
         }
 
+        type Query {
+          author(criteria: String): [Author]
+        }
 
  `;
   //db
@@ -56,21 +59,26 @@ import { startStandaloneServer } from '@apollo/server/standalone';
     { id: 1, name: 'Richard C. Martin' },
     { id: 2, name: 'Alex Banks and Eve Porcello' },
     { id: 3, name: 'Nietzsche' },
-
   ];
 
   const resolvers = {
     Query: {
-      books(_obj: any, args: any){
-        console.log(args);
-        if(!args.criteria) return books
-        return books.filter(books => books.title.toLocaleLowerCase().includes(args.criteria.toLocaleLowerCase()));
+      books(obj: any, args: any) {
+      
+        if (!args.criteria) return books;
+        return books.filter((books) =>
+          books.title
+            .toLocaleLowerCase()
+            .includes(args.criteria.toLocaleLowerCase())
+        );
       },
-
-     /*  author: () =>
-        authors.filter((author, i) => {
-          return author.id === books[i].id; 
-        }), */
+      author: (obj: any, args: any) => {
+        console.log(obj);
+        if (!args.criteria) return authors;
+        return authors.filter((author, i) => {
+          return author.id === Number(args.criteria);
+        });
+      },
     },
   };
 

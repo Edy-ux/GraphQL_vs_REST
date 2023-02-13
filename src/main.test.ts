@@ -1,5 +1,4 @@
 import axios from 'axios';
-// const axios = require("axios")
 
 test('should return a array with 3 elements', async () => {
   const query = `
@@ -12,6 +11,7 @@ test('should return a array with 3 elements', async () => {
            } 
        }
  }`;
+
   const reponse = await axios('http://localhost:4000/', {
     method: 'post',
     data: {
@@ -28,7 +28,9 @@ test('should return a array with 3 elements', async () => {
     },
   });
 
-  const output = reponse.data;
-  //  console.log();
-  expect(output.data.books).toHaveLength(3);
+  const  {data: { books }} = reponse.data; 
+  /* const {books}  = reponse.data
+   console.log(books); */
+   console.log(books[1]);
+  expect(books).toHaveLength(3)
 });
