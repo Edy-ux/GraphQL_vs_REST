@@ -1,8 +1,13 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
-
+import pgp from 'pg-promise'
 (async () => {
   //schema basics
+
+  const connection =  pgp()("postgresql://postgres:root@localhost:5432/app")
+  const data  =  await connection.query('SELECT * FROM cultura_book')
+
+  
   const typeDefs = `
    
         type Book {
@@ -87,7 +92,8 @@ import { startStandaloneServer } from '@apollo/server/standalone';
   const resolvers = {
     Query: {
       books(obj: any, args: any) {
-        console.log(args);
+    
+     
         if (!args.criteria) return books;
         return books.filter((books) =>
           books.title
@@ -100,6 +106,8 @@ import { startStandaloneServer } from '@apollo/server/standalone';
       },
 
     },
+
+    
 
     Mutation: {
       saveBook: (obj: any, args: any) => {

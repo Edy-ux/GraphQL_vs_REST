@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { response } from 'express';
+import { stringify } from 'ts-jest';
 
 describe('books API graphQL', () => {
   test('should return a array with 3 elements', async () => {
@@ -27,7 +28,7 @@ describe('books API graphQL', () => {
     } = await response.data;
     expect(books).toHaveLength(3);
   });
-  /* 
+
   test('get book by params', async () => {
     const response = await axios('http://localhost:4000/', {
       method: 'post',
@@ -50,18 +51,17 @@ describe('books API graphQL', () => {
     });
 
     const {
-      data: { books},
+      data: { books },
     } = await response.data;
 
     const [book] = books;
     const [author] = book.authors;
 
-  console.log(book);
+    console.log(book);
     expect(books).toHaveLength(1);
     expect(book.title).toBe('Clean Code');
-    expect(author.name).toBe("Robert C. Martin");
-  }); */
-
+    expect(author.name).toBe('Robert C. Martin');
+  });
 
   test('must save a new book', async () => {
     const response = await axios('http://localhost:4000/', {
@@ -87,15 +87,8 @@ describe('books API graphQL', () => {
           },
         },
       },
-
     });
 
-    const book = await response.data
-    console.log(book);
-
-
+    const book = response.data;
   });
-
-
-
 });
