@@ -1,5 +1,5 @@
 import pgp from 'pg-promise';
-
+import { queryParams } from '../../main';
 export default class Connection {
   public connection: any;
 

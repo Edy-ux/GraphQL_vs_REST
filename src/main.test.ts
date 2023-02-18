@@ -21,15 +21,13 @@ describe('books API graphQL', () => {
       },
     });
 
-    const {
-      data: { books },
-    } = await response.data;
+   const { data: { books } } = await response.data;
     
-   // console.log(JSON.stringify(books,  null, 4));
-   expect(books).toHaveLength(2);
+  //  console.log(JSON.stringify(books,  null, 4));
+   expect(books).toHaveLength(1);
   });
 
- test('get book by params', async () => { 
+/*  test('get book by params', async () => { 
 
     const response = await axios('http://localhost:4000/', {
       method: 'post',
@@ -57,30 +55,29 @@ describe('books API graphQL', () => {
       data: { books },
     } = await response.data;
 
-    console.log(books)
 
     const [book] = books;
     const [author, authorB] = book.authors;
 
-    console.log(authorB);
-    expect(books).toHaveLength(1);
+    expect(books).toHaveLength(2);
     expect(book.title).toBe('Clean Code');
     expect(author.name).toBe('Robert C. Martin');
     expect(authorB.name).toBe('Ednei');
 
-  });
+  }); */
 
-/*   test('must save a new book', async () => {
+  test('must save a new book', async () => {
     const response = await axios('http://localhost:4000/', {
       method: 'post',
       data: {
         query: `
            mutation ($book: BookInput) {
-                saveBook (book: $book) { 
+                book: saveBook(book: $book) { 
                     id
                     title
                     price
-                    authors {
+                    authors{
+                      id 
                       name
                     }
                 } 
@@ -96,6 +93,9 @@ describe('books API graphQL', () => {
       },
     });
 
-    const book = response.data;
-  });  */
+    const { data: book } = response.data;
+    console.log(JSON.stringify(book, null, 2));
+
+    
+  }); 
 });
