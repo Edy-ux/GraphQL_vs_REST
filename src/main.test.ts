@@ -1,23 +1,21 @@
 import axios from 'axios';
-import { response } from 'express';
-import { stringify } from 'ts-jest';
 
 describe('books API graphQL', () => {
-  test('should return a array with 3 elements', async () => {
+  test('should return a array with 2 elements', async () => {
     const response = await axios('http://localhost:4000/', {
       method: 'post',
       data: {
         query: `
          query GetBook {
-          books {
+          books: search {
               id
               title
               price
-          
               authors {
                 id
                 name
               }
+          
           }
        }`,
       },
@@ -26,19 +24,24 @@ describe('books API graphQL', () => {
     const {
       data: { books },
     } = await response.data;
-    expect(books).toHaveLength(3);
+    
+   // console.log(JSON.stringify(books,  null, 4));
+   expect(books).toHaveLength(2);
   });
 
-  test('get book by params', async () => {
+ test('get book by params', async () => { 
+
     const response = await axios('http://localhost:4000/', {
       method: 'post',
       data: {
         query: `
        query GetBook($criteria: String) {
-            books(criteria: $criteria) {
+        books: search(criteria: $criteria) {
                 id
                 title
+                price
                 authors {
+                  id
                   name
                 }
             } 
@@ -54,16 +57,20 @@ describe('books API graphQL', () => {
       data: { books },
     } = await response.data;
 
-    const [book] = books;
-    const [author] = book.authors;
+    console.log(books)
 
-    console.log(book);
+    const [book] = books;
+    const [author, authorB] = book.authors;
+
+    console.log(authorB);
     expect(books).toHaveLength(1);
     expect(book.title).toBe('Clean Code');
     expect(author.name).toBe('Robert C. Martin');
+    expect(authorB.name).toBe('Ednei');
+
   });
 
-  test('must save a new book', async () => {
+/*   test('must save a new book', async () => {
     const response = await axios('http://localhost:4000/', {
       method: 'post',
       data: {
@@ -90,5 +97,5 @@ describe('books API graphQL', () => {
     });
 
     const book = response.data;
-  });
+  });  */
 });

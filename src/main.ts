@@ -1,35 +1,42 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
-import pgp from 'pg-promise'
+const crypto = require('crypto');
+import Connection from './infra/database/Connection';
+
+type Book = {
+    id_book: string;
+    title: string;
+    price: number;
+    authors?: { id: string; title: string; price: number }[];
+};
+
+type queryParams = {
+    criteria: string;
+};
+
 (async () => {
-  //schema basics
-
-  const connection =  pgp()("postgresql://postgres:root@localhost:5432/app")
-  const data  =  await connection.query('SELECT * FROM cultura_book')
-
-  
-  const typeDefs = `
+    const typeDefs = `
    
         type Book {
-            id: Int
+            id: String
             title: String
-            authors: [Author]
             price: Int
+            authors: [Author]
     
         }
         type Author {
-            id: Int
+            id: String
             name: String
         }
 
         type Query {
-          books(criteria: String): [Book]
+          search(criteria: String): [Book]
         }
 
         type Query {
-          author(criteria: String): [Author]
+          search(book: String): [Book]
         }
-        
+
         input BookInput {
           title: String
           price: Int
@@ -41,101 +48,89 @@ import pgp from 'pg-promise'
         }
 
  `;
-  //db
-  const books = [
-    {
-      id: 1,
-      title: 'Clean Code',
-      authors: [
-        {
-          name: 'Robert C. Martin',
-        },
-        {
-          name: 'Martin',
-        },
-      ],
-      price: 64,
-    },
-    {
-      id: 2,
-      title: 'Learn React',
-      authors: [
-        {
-          name: 'Alex Banks',
-        },
-        {
-          name: 'Alex Banks Eve Porcello',
-        },
-      ],
-      price: 50,
-    },
-    {
-      id: 3,
-      title: 'Beyound good and evil',
-      authors: [
-        {
-          name: 'Nietzche',
-        },
-      ],
-      price: 64,
-    },
-  ];
+    const resolvers = {
+        Query: {
+            async search(obj: {}, params: any) {
+              console.log(params)
+                const connection = new Connection();
+                const bookData = await connection.query(
+                    'SELECT * FROM cultura_book where ($1::text is null or title = $1)',
+                    [params.criteria]
+                );
+                const books = (book: Book, dataAuthor: any) => ({
+                    id: book.id_book,
+                    title: book.title,
+                    price: book.price,
+                    authors: dataAuthor.map((author: any) => ({
+                        id: author.id_author,
+                        name: author.name,
+                    })),
+                });
+                if (!params.criteria) {
+                    return bookData.map(async (book: Book) => {
+                        const dataAuthor = await connection.query(
+                            'SELECT rt.id_author, name from cultura_author rt inner join cultura_book lf on rt.id_book = lf.id_book where lf.id_book = $1',
+                            [book.id_book]
+                        );
+                        return books(book, dataAuthor);
+                    });
+                  
+                } else {
+                    const bookDataFiltered = await connection.query(
+                        'SELECT * FROM cultura_book',
+                        [params.criteriay]
+                    );
+                    return bookDataFiltered
+                        .filter((book: Book) => {
+                            return book.title
+                                .toLocaleLowerCase()
+                                .includes(params.criteria.toLocaleLowerCase());
+                        })
+                        .map(async (book: Book) => {
+                            const dataAuthor = await connection.query(
+                                'SELECT rt.id_author, name from cultura_author rt inner join cultura_book lf on rt.id_book = lf.id_book where lf.id_book = $1',
+                                [book.id_book]
+                            );
+                            await connection.close();
+                            return books(book, dataAuthor);
+                        });
+                }
+            },
 
-  const authors = [
-    { id: 1, name: 'Richard C. Martin' },
-    { id: 2, name: 'Alex Banks and Eve Porcello' },
-    { id: 3, name: 'Nietzsche' },
-  ];
+        },
 
-  console.log(books);
-
-  const resolvers = {
-    Query: {
-      books(obj: any, args: any) {
-    
-     
-        if (!args.criteria) return books;
-        return books.filter((books) =>
-          books.title
-            .toLocaleLowerCase()
-            .includes(args.criteria.toLocaleLowerCase())
+        Mutation: {
+            /*       saveBook: async (obj: any, params: any) => {
+        const connection = pgp()(
+          "postgresql://postgres:root@localhost:5432/app"
         );
-      },
-      author: (obj: any, args: any) => {
-        if (!args.criteria) return authors;
-      },
 
-    },
-
+        const books = await connection.query("SELECT * FROM cultura_book");
     
-
-    Mutation: {
-      saveBook: (obj: any, args: any) => {
-        console.log(args);
         const book = {
           id: books.length + 1,
-          title: args.book.title,
-          price: args.book.price,
+          title: params.book.title,
+          price: params.book.price,
           authors: [
             {
-              name: args.book.authorName,
+              name: params.book.authorName,
             },
           ],
         };
 
         books.push(book);
         return book;
-      },
-    },
-  };
+      }, */
+        },
+    };
 
-  const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-  });
+    const server = new ApolloServer({
+        typeDefs,
+        resolvers,
+    });
 
-  const { url } = await startStandaloneServer(server, {
-    listen: { port: 4000 },
-  });
-  console.log(`🚀  Server ready at: ${url}`);
+    const { url } = await startStandaloneServer(server, {
+        listen: { port: 4000 },
+    });
+    console.log(`🚀  Server ready at: ${url}`);
 })();
