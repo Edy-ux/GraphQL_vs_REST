@@ -5,7 +5,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "nodemon ./src/main.ts",
+    "start": "nodemon ./src/main_graphql.ts",
     "test": "jest"
   },
   "dependencies": {
